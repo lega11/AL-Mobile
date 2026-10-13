@@ -1,0 +1,16 @@
+# Gradle / build output
+.gradle/
+.kotlin/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local machine settings (SDK path etc.)
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+.DS_Store
