@@ -1,5 +1,6 @@
 package com.example.deedtrack.ui.screens
 
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -37,10 +38,10 @@ fun ReviewSubmitScreen(
     )
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = SurfaceColor,
         topBar = { AppTopBar("Review & submit", onBack = onBack) },
         bottomBar = {
-            Box(Modifier.fillMaxWidth().background(Color.White).navigationBarsPadding().padding(16.dp)) {
+            Box(Modifier.fillMaxWidth().background(SurfaceColor).navigationBarsPadding().padding(16.dp)) {
                 PrimaryButton("Submit application", onSubmit, enabled = confirmed)
             }
         }

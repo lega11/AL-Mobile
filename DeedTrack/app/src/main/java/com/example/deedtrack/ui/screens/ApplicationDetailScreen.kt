@@ -1,5 +1,7 @@
 package com.example.deedtrack.ui.screens
 
+import com.example.deedtrack.ui.theme.ErrorBg
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -77,7 +79,7 @@ fun ApplicationDetailScreen(
             application.decision?.let { decision ->
                 Spacer(Modifier.height(16.dp))
                 val good = decision != Decision.DECLINED
-                AppCard(background = if (good) SuccessBg else Color(0xFFFFEBEE)) {
+                AppCard(background = if (good) SuccessBg else ErrorBg) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.Verified, contentDescription = null, tint = if (good) SuccessGreen else ErrorRed)
                         Spacer(Modifier.width(10.dp))
@@ -130,11 +132,11 @@ private fun StatusTimeline(application: MortgageApplication) {
                         Modifier
                             .size(26.dp)
                             .clip(CircleShape)
-                            .background(if (reached) MaterialTheme.colorScheme.primary else Color.White)
+                            .background(if (reached) MaterialTheme.colorScheme.primary else SurfaceColor)
                             .border(2.dp, if (reached) MaterialTheme.colorScheme.primary else CardBorder, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (reached) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        if (reached) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
                     }
                     if (index < statuses.lastIndex) {
                         Box(

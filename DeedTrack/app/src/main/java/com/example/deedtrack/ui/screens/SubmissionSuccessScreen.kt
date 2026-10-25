@@ -1,5 +1,6 @@
 package com.example.deedtrack.ui.screens
 
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -30,7 +31,7 @@ fun SubmissionSuccessScreen(
     onUploadDocuments: () -> Unit,
     onBackToApplications: () -> Unit
 ) {
-    Scaffold(containerColor = Color.White) { padding ->
+    Scaffold(containerColor = SurfaceColor) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -45,7 +46,7 @@ fun SubmissionSuccessScreen(
                     Modifier.size(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+                    Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp))
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -72,7 +73,7 @@ fun SubmissionSuccessScreen(
             Spacer(Modifier.height(12.dp))
             AppCard(background = SoftFill) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconTile(Icons.Outlined.Description, background = Color.White)
+                    IconTile(Icons.Outlined.Description, background = SurfaceColor)
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text("Next: add your documents", fontWeight = FontWeight.SemiBold)

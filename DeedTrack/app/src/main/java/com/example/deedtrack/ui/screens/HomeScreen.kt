@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,10 +26,13 @@ import com.example.deedtrack.ui.theme.CardBorder
 import com.example.deedtrack.ui.theme.MutedText
 import com.example.deedtrack.ui.theme.SoftFill
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     user: UserProfile?,
     applications: List<MortgageApplication>,
+    refreshing: Boolean,
+    onRefresh: () -> Unit,
     onNewApplication: () -> Unit,
     onOpenApplication: (String) -> Unit,
     onTab: (MainTab) -> Unit
@@ -50,8 +54,13 @@ fun HomeScreen(
             )
         }
     ) { padding ->
+      PullToRefreshBox(
+        isRefreshing = refreshing,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize().padding(padding)
+      ) {
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
+            Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -68,6 +77,7 @@ fun HomeScreen(
             }
             item { Spacer(Modifier.height(72.dp)) } // room for the button
         }
+      }
     }
 }
 

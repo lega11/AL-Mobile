@@ -20,8 +20,11 @@ interface AppRepository {
     val draft: StateFlow<ApplicationDraft?>
 
     /** Returns an error message, or null if logged in. */
-    fun logIn(email: String, password: String): String?
-    fun register(profile: UserProfile, password: String)
+    suspend fun logIn(email: String, password: String): String?
+    /** Returns an error message, or null if the account was created. */
+    suspend fun register(profile: UserProfile, password: String): String?
+    /** Returns an error message, or null if the reset email was sent. */
+    suspend fun sendPasswordReset(email: String): String?
     fun logOut()
     fun updateProfile(profile: UserProfile)
 
@@ -29,6 +32,11 @@ interface AppRepository {
     fun clearDraft()
     fun submit(draft: ApplicationDraft): MortgageApplication
     fun addDocuments(applicationId: String, type: DocumentType, uris: List<String>)
+    /** Swaps a local file for its uploaded copy (or removes it when [newUri] is null). */
+    fun replaceDocument(applicationId: String, type: DocumentType, oldUri: String, newUri: String?)
+
+    /** Removes drafts and other personal data saved on this phone (used on log out). */
+    fun clearDeviceData()
 
     /** Demo only: moves an application to the next status (normally done by AL-Web / AL-Core). */
     fun advanceStatus(applicationId: String)
@@ -39,6 +47,9 @@ class InMemoryAppRepository : AppRepository {
     private data class Account(val profile: UserProfile, val password: String)
 
     private val accounts = mutableMapOf<String, Account>()
+
+    /** Encrypted on-device storage for drafts (set by MainActivity; null in unit tests). */
+    var draftStorage: DraftStorage? = null
     private val _currentUser = MutableStateFlow<UserProfile?>(null)
     private val _applications = MutableStateFlow<List<MortgageApplication>>(emptyList())
     private val _draft = MutableStateFlow<ApplicationDraft?>(null)
@@ -51,18 +62,27 @@ class InMemoryAppRepository : AppRepository {
         seedDemoAccount()
     }
 
-    override fun logIn(email: String, password: String): String? {
+    /** Used by FirebaseAppRepository to tell this class who is logged in. */
+    fun setCurrentUser(profile: UserProfile?) {
+        _currentUser.value = profile
+        _draft.value = profile?.let { draftStorage?.load(it.email) }
+    }
+
+    override suspend fun logIn(email: String, password: String): String? {
         if (email.isBlank() || password.isBlank()) return "Enter your email and password."
         val account = accounts[email.lowercase()] ?: return "No account found for this email. Create an account first."
         if (account.password != password) return "Incorrect email or password."
-        _currentUser.value = account.profile
+        setCurrentUser(account.profile)
         return null
     }
 
-    override fun register(profile: UserProfile, password: String) {
+    override suspend fun register(profile: UserProfile, password: String): String? {
         accounts[profile.email.lowercase()] = Account(profile, password)
         _currentUser.value = profile
+        return null
     }
+
+    override suspend fun sendPasswordReset(email: String): String? = null
 
     override fun logOut() {
         _currentUser.value = null
@@ -77,10 +97,17 @@ class InMemoryAppRepository : AppRepository {
 
     override fun saveDraft(draft: ApplicationDraft) {
         _draft.value = draft
+        _currentUser.value?.let { draftStorage?.save(it.email, draft) }
     }
 
     override fun clearDraft() {
         _draft.value = null
+        _currentUser.value?.let { draftStorage?.clear(it.email) }
+    }
+
+    override fun clearDeviceData() {
+        _draft.value = null
+        draftStorage?.clearAll()
     }
 
     override fun submit(draft: ApplicationDraft): MortgageApplication {
@@ -102,6 +129,19 @@ class InMemoryAppRepository : AppRepository {
             list.map { app ->
                 if (app.id != applicationId) app
                 else app.copy(documents = app.documents + (type to (app.documents[type].orEmpty() + uris)))
+            }
+        }
+    }
+
+    override fun replaceDocument(applicationId: String, type: DocumentType, oldUri: String, newUri: String?) {
+        _applications.update { list ->
+            list.map { app ->
+                if (app.id != applicationId) app
+                else {
+                    val files = app.documents[type].orEmpty()
+                        .mapNotNull { if (it == oldUri) newUri else it }
+                    app.copy(documents = if (files.isEmpty()) app.documents - type else app.documents + (type to files))
+                }
             }
         }
     }

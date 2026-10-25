@@ -1,5 +1,6 @@
 package com.example.deedtrack.ui.screens
 
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -69,7 +70,7 @@ fun ApplicationFormScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = SurfaceColor,
         topBar = {
             AppTopBar("New application", onBack = { if (step == 0) onExit() else step-- }, actions = {
                 Text("Draft", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge,
@@ -78,7 +79,7 @@ fun ApplicationFormScreen(
         },
         bottomBar = {
             Row(
-                Modifier.fillMaxWidth().background(Color.White).navigationBarsPadding().padding(16.dp),
+                Modifier.fillMaxWidth().background(SurfaceColor).navigationBarsPadding().padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (step == 0) SecondaryButton("Save draft", onSaveDraft, Modifier.weight(1f))
@@ -195,7 +196,7 @@ private fun PropertyStep(
             Modifier.fillMaxWidth().background(NavyLight, RoundedCornerShape(12.dp)).padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconTile(Icons.Outlined.AutoAwesome, background = Color.White)
+            IconTile(Icons.Outlined.AutoAwesome, background = SurfaceColor)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 SectionLabel("Estimated property value")

@@ -1,5 +1,6 @@
 package com.example.deedtrack.ui.screens
 
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -27,20 +28,23 @@ import com.example.deedtrack.ui.theme.CardBorder
 import com.example.deedtrack.ui.theme.MutedText
 import com.example.deedtrack.ui.theme.SuccessBg
 import com.example.deedtrack.ui.theme.SuccessGreen
+import kotlinx.coroutines.launch
 
 // ======================= Log in =======================
 
 @Composable
 fun LoginScreen(
-    onLogIn: (email: String, password: String) -> String?,
+    onLogIn: suspend (email: String, password: String) -> String?,
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
-    Scaffold(containerColor = Color.White) { padding ->
+    Scaffold(containerColor = SurfaceColor) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(24.dp)
         ) {
@@ -68,7 +72,17 @@ fun LoginScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            PrimaryButton("Log in", { errorMessage = onLogIn(email.trim(), password) })
+            PrimaryButton(
+                if (loading) "Logging in…" else "Log in",
+                {
+                    loading = true
+                    scope.launch {
+                        errorMessage = onLogIn(email.trim(), password)
+                        loading = false
+                    }
+                },
+                enabled = !loading
+            )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Text("New to Agentic Lender?", color = MutedText, style = MaterialTheme.typography.bodyMedium)
@@ -77,12 +91,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
             InfoNote(Icons.Filled.Lock, "Your account is protected with bank-grade encryption.")
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Prototype demo login: demo@agenticlender.ie / password",
-                style = MaterialTheme.typography.labelSmall,
-                color = MutedText
-            )
         }
     }
 }
@@ -90,11 +98,17 @@ fun LoginScreen(
 // ======================= Forgot password =======================
 
 @Composable
-fun ForgotPasswordScreen(onBack: () -> Unit) {
+fun ForgotPasswordScreen(
+    onBack: () -> Unit,
+    onSendReset: suspend (email: String) -> String?
+) {
     var email by rememberSaveable { mutableStateOf("") }
     var sent by rememberSaveable { mutableStateOf(false) }
+    var sending by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
-    Scaffold(containerColor = Color.White, topBar = { AppTopBar("Forgot password?", onBack = onBack) }) { padding ->
+    Scaffold(containerColor = SurfaceColor, topBar = { AppTopBar("Forgot password?", onBack = onBack) }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(24.dp)
         ) {
@@ -112,7 +126,22 @@ fun ForgotPasswordScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(24.dp))
             FormField("Email address", email, { email = it }, placeholder = "name@example.ie", keyboardType = KeyboardType.Email)
             Spacer(Modifier.height(20.dp))
-            PrimaryButton("Send reset link", { sent = true }, enabled = email.contains("@"))
+            errorMessage?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(8.dp))
+            }
+            PrimaryButton(
+                if (sending) "Sending…" else "Send reset link",
+                {
+                    sending = true
+                    scope.launch {
+                        errorMessage = onSendReset(email.trim())
+                        sent = errorMessage == null
+                        sending = false
+                    }
+                },
+                enabled = email.contains("@") && !sending
+            )
 
             if (sent) {
                 Spacer(Modifier.height(20.dp))
@@ -146,7 +175,7 @@ fun ForgotPasswordScreen(onBack: () -> Unit) {
 @Composable
 fun CreateAccountScreen(
     onBack: () -> Unit,
-    onCreate: (UserProfile, String) -> Unit
+    onCreate: suspend (UserProfile, String) -> String?
 ) {
     var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -156,6 +185,9 @@ fun CreateAccountScreen(
     var consent by rememberSaveable { mutableStateOf(false) }
     var showErrors by remember { mutableStateOf(false) }
     var showPrivacy by remember { mutableStateOf(false) }
+    var creating by remember { mutableStateOf(false) }
+    var serverError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     val problems = buildList {
         if (fullName.isBlank()) add("Enter your full name.")
@@ -165,7 +197,7 @@ fun CreateAccountScreen(
         if (!consent) add("Tick the box to agree to the privacy notice.")
     }
 
-    Scaffold(containerColor = Color.White, topBar = { AppTopBar("Create account", onBack = onBack) }) { padding ->
+    Scaffold(containerColor = SurfaceColor, topBar = { AppTopBar("Create account", onBack = onBack) }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(24.dp)
         ) {
@@ -203,15 +235,29 @@ fun CreateAccountScreen(
                 }
             }
 
+            serverError?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+
             Spacer(Modifier.height(16.dp))
-            PrimaryButton("Create account", {
-                if (problems.isEmpty()) {
-                    val fullPhone = if (phone.isBlank()) "" else "+353 ${phone.trim()}"
-                    onCreate(UserProfile(fullName.trim(), email.trim(), fullPhone), password)
-                } else {
-                    showErrors = true
-                }
-            })
+            PrimaryButton(
+                if (creating) "Creating account…" else "Create account",
+                {
+                    if (problems.isEmpty()) {
+                        val fullPhone = if (phone.isBlank()) "" else "+353 ${phone.trim()}"
+                        creating = true
+                        serverError = null
+                        scope.launch {
+                            serverError = onCreate(UserProfile(fullName.trim(), email.trim(), fullPhone), password)
+                            creating = false
+                        }
+                    } else {
+                        showErrors = true
+                    }
+                },
+                enabled = !creating
+            )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Text("Already registered?", color = MutedText, style = MaterialTheme.typography.bodyMedium)
                 TextButton(onClick = onBack) { Text("Log in") }

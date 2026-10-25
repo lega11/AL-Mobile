@@ -1,5 +1,6 @@
 package com.example.deedtrack.ui.components
 
+import com.example.deedtrack.ui.theme.SurfaceColor
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,7 +47,7 @@ fun BrandMark(size: Dp = 32.dp) {
         Modifier.size(size).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Icon(Icons.Filled.BarChart, contentDescription = null, tint = Color.White, modifier = Modifier.size(size * 0.6f))
+        Icon(Icons.Filled.BarChart, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(size * 0.6f))
     }
 }
 
@@ -59,7 +63,8 @@ fun BrandRow() {
 @Composable
 fun Avatar(initials: String, size: Dp = 36.dp) {
     Box(
-        Modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+        Modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer)
+            .semantics(mergeDescendants = true) { contentDescription = "Profile $initials" },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -94,7 +99,7 @@ fun AppTopBar(
                 }
             },
             actions = actions,
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = SurfaceColor)
         )
         HorizontalDivider(color = CardBorder)
     }
@@ -102,18 +107,19 @@ fun AppTopBar(
 
 enum class MainTab(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Outlined.Home),
+    EXPLORE("Explore", Icons.Outlined.Map),
     DOCUMENTS("Documents", Icons.Outlined.Description),
     PROFILE("Profile", Icons.Outlined.Person)
 }
 
 @Composable
 fun MainBottomBar(selected: MainTab, onSelect: (MainTab) -> Unit) {
-    NavigationBar(containerColor = Color.White) {
+    NavigationBar(containerColor = SurfaceColor) {
         MainTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = tab == selected,
                 onClick = { onSelect(tab) },
-                icon = { Icon(tab.icon, contentDescription = null) },
+                icon = { Icon(tab.icon, contentDescription = null) }, // label below is read by TalkBack
                 label = { Text(tab.label) }
             )
         }
@@ -148,7 +154,7 @@ fun ScreenHeading(title: String, subtitle: String? = null) {
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
-    background: Color = Color.White,
+    background: Color = SurfaceColor,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -202,7 +208,8 @@ fun StatusChip(status: ApplicationStatus, modifier: Modifier = Modifier) {
     val (bg, fg) = statusColors(status)
     Text(
         status.label,
-        modifier = modifier.background(bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 4.dp),
+        modifier = modifier.semantics { contentDescription = "Status: ${status.label}" }
+            .background(bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 4.dp),
         color = fg,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold
@@ -286,7 +293,7 @@ fun DropdownField(
                 singleLine = true,
                 isError = isError,
                 placeholder = { Text(placeholder, color = MutedText) },
-                trailingIcon = { Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null) },
+                trailingIcon = { Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Show options") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp)
             )
@@ -334,16 +341,16 @@ fun FormStepper(current: Int, labels: List<String>) {
                     Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(if (reached) MaterialTheme.colorScheme.primary else Color.White)
+                        .background(if (reached) MaterialTheme.colorScheme.primary else SurfaceColor)
                         .border(1.5.dp, if (reached) MaterialTheme.colorScheme.primary else CardBorder, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     if (index < current) {
-                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
                     } else {
                         Text(
                             "${index + 1}",
-                            color = if (reached) Color.White else MutedText,
+                            color = if (reached) MaterialTheme.colorScheme.onPrimary else MutedText,
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
