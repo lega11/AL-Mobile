@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "840907976466",
+    "project_id": "agentic-lender-be30f",
+    "storage_bucket": "agentic-lender-be30f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840907976466:android:5e8aa597b848e25722cdcb",
+        "android_client_info": {
+          "package_name": "com.example.deedtrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "840907976466-fm2u7qqin9qd8faghujoqffbku76ddk0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx6a16gTmhnFxdf8KXYjcUDHM8LMO2zWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "840907976466-fm2u7qqin9qd8faghujoqffbku76ddk0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
